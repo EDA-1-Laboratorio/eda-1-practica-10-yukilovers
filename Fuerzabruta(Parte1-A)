@@ -1,0 +1,29 @@
+import itertools
+import time
+
+def buscar_cadena_objetivo(objetivo: str, alfabeto: str, min_len: int = 1):
+    """Regresa (encontrada, intentos, tiempo_segundos)."""
+    inicio = time.perf_counter()
+    intentos = 0
+    for longitud in range(min_len, len(objetivo) + 1):
+        for candidato in itertools.product(alfabeto, repeat=longitud):
+            intentos += 1
+            cadena = ''.join(candidato)
+
+            if cadena == objetivo:
+                fin = time.perf_counter()
+                tiempo = fin - inicio
+                return True, intentos, tiempo
+    fin = time.perf_counter()
+    tiempo = fin - inicio
+    return False, intentos, tiempo
+if __name__ == "__main__":
+    alfabeto = "0123456789"
+    objetivo = "323"  
+    encontrada, intentos, tiempo = buscar_cadena_objetivo(objetivo, alfabeto)
+    # Cálculo de la tasa (fuera de la función)
+    tasa = intentos / tiempo if tiempo > 0 else 0
+    print("Encontrada:", encontrada)
+    print("Intentos:", intentos)
+    print("Tiempo (s):", tiempo)
+    print("Tasa (cand/s):", tasa)

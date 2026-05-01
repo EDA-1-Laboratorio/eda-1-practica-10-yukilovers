@@ -1,0 +1,97 @@
+import itertools
+import string
+import time
+
+# ---------------------------------------------------------------------------
+# Alfabetos predefinidos
+# ---------------------------------------------------------------------------
+DIGITOS    = string.digits
+MINUSCULAS = string.ascii_lowercase
+ALNUM      = string.ascii_letters + string.digits
+
+
+# ---------------------------------------------------------------------------
+# Problema A – Generación y búsqueda exhaustiva
+# ---------------------------------------------------------------------------
+
+def generar_candidatos(alfabeto: str, longitud: int):
+    for tupla in itertools.product(alfabeto, repeat=longitud):
+        yield "".join(tupla)
+
+
+def buscar_cadena_objetivo(objetivo: str, alfabeto: str,
+                           min_len: int = 1) -> tuple:
+    intentos = 0
+    inicio   = time.perf_counter()
+
+    for longitud in range(min_len, len(objetivo) + 1):
+        for candidato in generar_candidatos(alfabeto, longitud):
+            intentos += 1
+
+            if candidato == objetivo:
+                tiempo = time.perf_counter() - inicio
+                return (True, intentos, tiempo)
+
+    tiempo = time.perf_counter() - inicio
+    return (False, intentos, tiempo)
+
+
+# ---------------------------------------------------------------------------
+# Problema B – Análisis de crecimiento
+# ---------------------------------------------------------------------------
+
+def combinar_teoricas(alfabeto: str, min_len: int, max_len: int) -> int:
+    return sum(len(alfabeto) ** k for k in range(min_len, max_len + 1))
+
+
+# ---------------------------------------------------------------------------
+# Problema C – Optimización con poda por prefijo
+# ---------------------------------------------------------------------------
+
+def buscar_con_poda(objetivo: str, alfabeto: str,
+                    prefijos_validos: set) -> tuple:
+    intentos = 0
+    inicio   = time.perf_counter()
+
+    for longitud in range(1, len(objetivo) + 1):
+        for partes in itertools.product(alfabeto, repeat=longitud):
+            candidato = "".join(partes)
+
+            # Verificar prefijos
+            valido = True
+            for k in range(1, len(candidato)):
+                if candidato[:k] not in prefijos_validos:
+                    valido = False
+                    break
+
+            if not valido:
+                continue
+
+            intentos += 1
+
+            if candidato == objetivo:
+                tiempo = time.perf_counter() - inicio
+                return (True, intentos, tiempo)
+
+    tiempo = time.perf_counter() - inicio
+    return (False, intentos, tiempo)
+
+
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    objetivo = "az"
+
+    print("=== Búsqueda por fuerza bruta ===")
+    encontrada, intentos, t = buscar_cadena_objetivo(objetivo, MINUSCULAS)
+    if encontrada:
+        print(f"  Objetivo : '{objetivo}'")
+        print(f"  Intentos : {intentos}")
+        print(f"  Tiempo   : {t:.4f} s")
+        print(f"  Tasa     : {intentos / t:.0f} candidatos/s")
+    else:
+        print("  No encontrado")
+
+    print("\n=== Combinaciones teóricas ===")
+    for max_len in [3, 4]:
+        n = combinar_teoricas(DIGITOS, 1, max_len)
+        print(f"  Dígitos hasta longitud {max_len}: {n:,} candidatos")
